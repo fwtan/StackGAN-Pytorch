@@ -257,8 +257,8 @@ class GANTrainer(object):
             noise = noise.cuda()
         count = 0
         while count < num_embeddings:
-            if count > 3000:
-                break
+            # if count > 3000:
+            #     break
             iend = count + batch_size
             if iend > num_embeddings:
                 iend = num_embeddings
@@ -277,7 +277,7 @@ class GANTrainer(object):
             _, fake_imgs, mu, logvar = \
                 nn.parallel.data_parallel(netG, inputs, self.gpus)
             for i in range(batch_size):
-                save_name = '%s/%d.png' % (save_dir, count + i)
+                save_name = '%s/%05d.png' % (save_dir, count + i)
                 im = fake_imgs[i].data.cpu().numpy()
                 im = (im + 1.0) * 127.5
                 im = im.astype(np.uint8)
