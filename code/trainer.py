@@ -303,4 +303,5 @@ class GANTrainer(object):
                 im = Image.fromarray(im)
                 im.save(save_name)
             count += batch_size
+            print(count)
 
