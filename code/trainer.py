@@ -233,11 +233,11 @@ class GANTrainer(object):
         self.summary_writer.close()
 
     def sample(self, datapath, stage=1):
-        # if stage == 1:
-        #     netG, _ = self.load_network_stageI()
-        # else:
-        #     netG, _ = self.load_network_stageII()
-        # netG.eval()
+        if stage == 1:
+            netG, _ = self.load_network_stageI()
+        else:
+            netG, _ = self.load_network_stageII()
+        netG.eval()
 
         # Load text embeddings generated from the encoder
         t_file = torchfile.load(datapath)
