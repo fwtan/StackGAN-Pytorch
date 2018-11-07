@@ -9,6 +9,7 @@ from torch.autograd import Variable
 import torch.optim as optim
 import os
 import time
+import os.path as osp
 
 import numpy as np
 import torchfile
@@ -232,15 +233,27 @@ class GANTrainer(object):
         self.summary_writer.close()
 
     def sample(self, datapath, stage=1):
-        if stage == 1:
-            netG, _ = self.load_network_stageI()
-        else:
-            netG, _ = self.load_network_stageII()
-        netG.eval()
+        # if stage == 1:
+        #     netG, _ = self.load_network_stageI()
+        # else:
+        #     netG, _ = self.load_network_stageII()
+        # netG.eval()
 
         # Load text embeddings generated from the encoder
         t_file = torchfile.load(datapath)
+        data_dir = osp.dirname(datapath)
+        original_filenames = np.loadtxt('%s/val_filename.txt'%data_dir, dtype=str)
+        original_captions = np.loadtxt('%s/val_captions.txt'%data_dir, dtype=str, delimiter='\n')
         captions_list = t_file.raw_txt
+        # print(len(original_captions), len(captions_list))
+        # for i in range(len(captions_list)):
+        #     tmp1 = original_captions[i]
+        #     tmp2 = captions_list[i]
+        #     print(i)
+        #     print(tmp1)
+        #     print(tmp2)
+        #     print('------')
+        #     assert(tmp1 == tmp2)
         embeddings = np.concatenate(t_file.fea_txt, axis=0)
         num_embeddings = len(captions_list)
         print('Successfully load sentences from: ', datapath)
@@ -264,6 +277,7 @@ class GANTrainer(object):
                 iend = num_embeddings
                 count = num_embeddings - batch_size
             embeddings_batch = embeddings[count:iend]
+            filenames_batch = original_filenames[count:iend]
             # captions_batch = captions_list[count:iend]
             txt_embedding = Variable(torch.FloatTensor(embeddings_batch))
             if cfg.CUDA:
@@ -277,7 +291,9 @@ class GANTrainer(object):
             _, fake_imgs, mu, logvar = \
                 nn.parallel.data_parallel(netG, inputs, self.gpus)
             for i in range(batch_size):
-                save_name = '%s/%05d.png' % (save_dir, count + i)
+                # save_name = '%s/%05d.png' % (save_dir, count + i)
+                save_name = osp.join(save_dir, filenames_batch[i] + '.jpg')
+
                 im = fake_imgs[i].data.cpu().numpy()
                 im = (im + 1.0) * 127.5
                 im = im.astype(np.uint8)
